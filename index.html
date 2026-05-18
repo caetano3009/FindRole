@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FindRolê — São Paulo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f4f0e8;
+  --bg2: #ece8df;
+  --ink: #1a1a18;
+  --ink2: #4a4a46;
+  --ink3: #9a9a94;
+  --accent: #2d4a1e;
+  --accent-t: #f4f0e8;
+  --border: #ccc9be;
+  --hover: #eae6dc;
+  --red: #c0392b;
+}
+body { background:var(--bg); color:var(--ink); font-family:'Space Grotesk',sans-serif; min-height:100vh; font-size:14px; }
+
+/* ── HEADER ── */
+header { padding:36px 48px 0; border-bottom:2px solid var(--ink); }
+.header-top { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
+.logo { font-family:'Bebas Neue',sans-serif; font-size:clamp(52px,8vw,88px); line-height:.9; color:var(--ink); cursor:default; }
+.header-meta { font-size:13px; color:var(--ink3); padding-bottom:6px; }
+.header-meta strong { color:var(--ink2); font-weight:500; }
+
+.header-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+
+.search-wrap { display:flex; align-items:center; border:1.5px solid var(--border); background:var(--bg); padding:0 14px; height:40px; gap:8px; min-width:240px; transition:border-color .15s; }
+.search-wrap:focus-within { border-color:var(--ink); }
+.search-wrap svg { color:var(--ink3); flex-shrink:0; }
+.search-wrap input { border:none; background:transparent; font-family:'Space Grotesk',sans-serif; font-size:13px; color:var(--ink); outline:none; width:100%; }
+.search-wrap input::placeholder { color:var(--ink3); }
+
+.btn-add { display:flex; align-items:center; gap:7px; padding:0 18px; height:40px; background:var(--ink); color:var(--bg); border:none; cursor:pointer; font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600; letter-spacing:.3px; white-space:nowrap; transition:opacity .15s; }
+.btn-add:hover { opacity:.8; }
+
+/* ── FILTERS ── */
+.filters { display:flex; gap:6px; flex-wrap:wrap; padding:16px 0 0; overflow-x:auto; scrollbar-width:none; }
+.filters::-webkit-scrollbar { display:none; }
+.filter-btn { font-family:'Space Grotesk',sans-serif; font-size:12px; font-weight:500; padding:7px 14px; border:1.5px solid var(--border); background:transparent; color:var(--ink2); cursor:pointer; white-space:nowrap; letter-spacing:.5px; transition:all .12s; }
+.filter-btn:hover { border-color:var(--ink); color:var(--ink); }
+.filter-btn.active { background:var(--accent); border-color:var(--accent); color:var(--accent-t); }
+.cbadge { font-family:'DM Mono',monospace; font-size:11px; opacity:.65; margin-left:3px; }
+
+/* ── TABLE ── */
+.table-wrap { padding:0 48px 100px; }
+.table-header { display:grid; grid-template-columns:48px 1fr 200px 160px 90px 48px; padding:14px 0 10px; border-bottom:1.5px solid var(--ink); gap:16px; }
+.table-header span { font-family:'DM Mono',monospace; font-size:11px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; color:var(--ink3); }
+.th-preco { text-align:right; }
+
+.row { display:grid; grid-template-columns:48px 1fr 200px 160px 90px 48px; gap:16px; padding:16px 48px; border-bottom:1px solid var(--border); align-items:center; transition:background .1s; margin:0 -48px; }
+.row:hover { background:var(--hover); }
+.row-num { font-family:'DM Mono',monospace; font-size:12px; color:var(--ink3); }
+.row-nome { font-size:16px; font-weight:500; color:var(--ink); letter-spacing:-.2px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; cursor:pointer; }
+.etag { font-family:'DM Mono',monospace; font-size:9px; font-weight:500; letter-spacing:1px; text-transform:uppercase; background:var(--accent); color:var(--accent-t); padding:3px 7px; }
+.etag-done { background:transparent; border:1.5px solid var(--border); color:var(--ink3); }
+.row-bairro { font-size:13.5px; color:var(--ink3); cursor:pointer; }
+.row-tipo { cursor:pointer; }
+.tipo-tag { font-family:'DM Mono',monospace; font-size:11px; font-weight:500; letter-spacing:1px; border:1.5px solid var(--ink); padding:4px 10px; white-space:nowrap; }
+.row-preco { font-family:'DM Mono',monospace; font-size:14px; color:var(--ink2); text-align:right; cursor:pointer; }
+.row.feito .row-nome { text-decoration:line-through; color:var(--ink3); }
+.row.feito { opacity:.48; }
+
+.row-del { display:flex; align-items:center; justify-content:center; }
+.btn-del { background:none; border:none; cursor:pointer; color:var(--ink3); width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:3px; transition:all .15s; }
+.btn-del:hover { background:rgba(192,57,43,.1); color:var(--red); }
+
+.empty { text-align:center; padding:80px 0; color:var(--ink3); font-size:14px; }
+
+/* ── MODAL DETALHES ── */
+.overlay { position:fixed; inset:0; background:rgba(26,26,24,.72); z-index:200; display:none; align-items:flex-end; justify-content:center; backdrop-filter:blur(4px); }
+.overlay.open { display:flex; }
+
+.modal { background:var(--bg); width:100%; max-width:760px; max-height:92vh; overflow-y:auto; border-top:3px solid var(--ink); display:grid; grid-template-columns:1fr 1fr; position:relative; animation:slideUp .28s cubic-bezier(.16,1,.3,1); }
+@keyframes slideUp { from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1} }
+
+.modal-img { position:relative; min-height:340px; overflow:hidden; background:var(--bg2); }
+.modal-img img { width:100%; height:100%; object-fit:cover; display:block; }
+.modal-img-ov { position:absolute; inset:0; background:linear-gradient(to top,rgba(26,26,24,.4) 0%,transparent 55%); }
+.modal-body { padding:30px 28px 24px; display:flex; flex-direction:column; overflow-y:auto; }
+.modal-close { position:absolute; top:13px; right:13px; background:var(--ink); color:var(--bg); border:none; width:36px; height:36px; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:10; transition:opacity .15s; line-height:1; font-family:'Space Grotesk',sans-serif; }
+.modal-close:hover { opacity:.7; }
+
+.m-tipo { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--ink3); margin-bottom:7px; }
+.m-nome { font-family:'Bebas Neue',sans-serif; font-size:44px; line-height:.95; color:var(--ink); margin-bottom:7px; }
+.m-bairro { font-size:13px; color:var(--ink3); margin-bottom:18px; display:flex; align-items:center; gap:5px; }
+.m-hr { height:1px; background:var(--border); margin-bottom:16px; }
+.m-desc { font-size:14px; line-height:1.75; color:var(--ink2); margin-bottom:22px; flex:1; }
+
+.m-actions { display:flex; flex-direction:column; gap:9px; }
+.btn-maps { display:flex; align-items:center; justify-content:center; gap:7px; padding:12px 18px; background:var(--accent); color:var(--accent-t); text-decoration:none; font-size:13px; font-weight:600; letter-spacing:.4px; border:none; cursor:pointer; font-family:'Space Grotesk',sans-serif; transition:opacity .15s; }
+.btn-maps:hover { opacity:.85; }
+.btn-feito { display:flex; align-items:center; justify-content:center; gap:7px; padding:11px 18px; background:transparent; color:var(--ink); font-size:13px; font-weight:500; border:1.5px solid var(--border); cursor:pointer; font-family:'Space Grotesk',sans-serif; transition:all .15s; }
+.btn-feito:hover { border-color:var(--ink); }
+.btn-feito.marked { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+.btn-del-modal { display:flex; align-items:center; justify-content:center; gap:7px; padding:11px 18px; background:transparent; color:var(--red); font-size:13px; font-weight:500; border:1.5px solid rgba(192,57,43,.3); cursor:pointer; font-family:'Space Grotesk',sans-serif; transition:all .15s; }
+.btn-del-modal:hover { background:rgba(192,57,43,.07); border-color:var(--red); }
+
+/* ── MODAL ADICIONAR ── */
+.overlay-add { position:fixed; inset:0; background:rgba(26,26,24,.72); z-index:300; display:none; align-items:center; justify-content:center; backdrop-filter:blur(4px); padding:20px; }
+.overlay-add.open { display:flex; }
+.modal-add { background:var(--bg); width:100%; max-width:520px; border-top:3px solid var(--ink); animation:slideUp .28s cubic-bezier(.16,1,.3,1); max-height:90vh; overflow-y:auto; }
+.modal-add-header { padding:24px 28px 0; display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+.modal-add-title { font-family:'Bebas Neue',sans-serif; font-size:30px; color:var(--ink); }
+.modal-add-body { padding:0 28px 28px; display:flex; flex-direction:column; gap:14px; }
+
+.field { display:flex; flex-direction:column; gap:5px; }
+.field label { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--ink3); font-weight:500; }
+.field input, .field select, .field textarea {
+  border:1.5px solid var(--border);
+  background:var(--bg);
+  font-family:'Space Grotesk',sans-serif;
+  font-size:14px;
+  color:var(--ink);
+  padding:10px 13px;
+  outline:none;
+  width:100%;
+  transition:border-color .15s;
+  border-radius:0;
+  resize:vertical;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color:var(--ink); }
+.field input::placeholder, .field textarea::placeholder { color:var(--ink3); }
+.field select option { background:var(--bg); }
+
+.fields-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+.btn-salvar { width:100%; padding:13px; background:var(--ink); color:var(--bg); border:none; cursor:pointer; font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600; letter-spacing:.5px; transition:opacity .15s; margin-top:4px; }
+.btn-salvar:hover { opacity:.8; }
+.btn-cancelar { width:100%; padding:11px; background:transparent; color:var(--ink2); border:1.5px solid var(--border); cursor:pointer; font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:500; transition:all .15s; }
+.btn-cancelar:hover { border-color:var(--ink); color:var(--ink); }
+
+/* ── TOAST ── */
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:var(--bg); padding:12px 22px; font-size:13px; font-weight:500; opacity:0; pointer-events:none; transition:all .3s; z-index:999; white-space:nowrap; }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── PROGRESS ── */
+.progress-strip { height:3px; background:var(--border); position:fixed; bottom:0; left:0; right:0; z-index:50; }
+.progress-fill { height:100%; background:var(--accent); transition:width .4s ease; }
+
+/* ── MOBILE ── */
+@media(max-width:720px){
+  header { padding:24px 20px 0; }
+  .header-top { gap:12px; }
+  .header-right { width:100%; }
+  .search-wrap { flex:1; min-width:0; }
+  .table-wrap { padding:0 20px 100px; }
+  .table-header { display:none; }
+  .row { grid-template-columns:1fr auto 36px; grid-template-rows:auto auto; margin:0 -20px; padding:13px 20px; gap:3px 8px; }
+  .row-num { display:none; }
+  .row-nome { grid-column:1; font-size:15px; grid-row:1; }
+  .row-preco { grid-column:2; grid-row:1; align-self:start; }
+  .row-del { grid-column:3; grid-row:1 / 3; }
+  .row-bairro { grid-column:1; grid-row:2; font-size:12px; }
+  .row-tipo { grid-column:2; grid-row:2; justify-content:flex-end; }
+  .modal { grid-template-columns:1fr; }
+  .modal-img { min-height:200px; max-height:200px; }
+  .m-nome { font-size:36px; }
+  .modal-body { padding:22px 20px 20px; }
+  .modal-add { margin:0; }
+  .overlay-add { align-items:flex-end; padding:0; }
+  .modal-add { border-radius:0; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div>
+      <div class="logo">FindRolê</div>
+      <div class="header-meta" id="meta-count"></div>
+    </div>
+    <div class="header-right">
+      <div class="search-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="search" type="text" placeholder="buscar lugar, bairro ou tipo…" oninput="render()">
+      </div>
+      <button class="btn-add" onclick="openAdd()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Adicionar lugar
+      </button>
+    </div>
+  </div>
+  <div class="filters" id="filters"></div>
+</header>
+
+<div class="table-wrap">
+  <div class="table-header">
+    <span></span><span>Lugar</span><span>Bairro</span><span>Tipo</span><span class="th-preco">Preço</span><span></span>
+  </div>
+  <div id="lista"></div>
+</div>
+
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<!-- ── MODAL DETALHES ── -->
+<div class="overlay" id="overlay" onclick="closeOvr(event)">
+  <div class="modal">
+    <div class="modal-img">
+      <img id="m-photo" src="" alt="" onerror="this.src='https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=900&q=80'">
+      <div class="modal-img-ov"></div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="m-tipo" id="m-tipo"></div>
+      <div class="m-nome" id="m-nome"></div>
+      <div class="m-bairro">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span id="m-bairro"></span>
+      </div>
+      <div class="m-hr"></div>
+      <div class="m-desc" id="m-desc"></div>
+      <div class="m-actions">
+        <a id="m-maps" href="#" target="_blank" rel="noopener" class="btn-maps">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Ver no Google Maps
+        </a>
+        <button class="btn-feito" id="btn-feito" onclick="toggleFeito()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="btn-feito-txt">Marcar como feito</span>
+        </button>
+        <button class="btn-del-modal" onclick="delFromModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          Excluir este lugar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL ADICIONAR ── -->
+<div class="overlay-add" id="overlay-add" onclick="closeAddOvr(event)">
+  <div class="modal-add">
+    <div class="modal-add-header">
+      <div class="modal-add-title">Novo Lugar</div>
+      <button class="modal-close" style="position:static" onclick="closeAdd()">×</button>
+    </div>
+    <div class="modal-add-body">
+      <div class="field">
+        <label>Nome do lugar *</label>
+        <input id="f-nome" type="text" placeholder="ex: Bar da Dona Onça">
+      </div>
+      <div class="fields-row">
+        <div class="field">
+          <label>Bairro / Cidade</label>
+          <input id="f-bairro" type="text" placeholder="ex: Centro">
+        </div>
+        <div class="field">
+          <label>Tipo *</label>
+          <select id="f-tipo">
+            <option value="">— selecione —</option>
+            <option>RESTAURANTE</option>
+            <option>BAR</option>
+            <option>ASIÁTICO</option>
+            <option>CAFÉ</option>
+            <option>ROOFTOP</option>
+            <option>CULTURA</option>
+            <option>MERCADO</option>
+            <option>EXPERIÊNCIA</option>
+            <option>VIAGEM</option>
+            <option>OUTRO</option>
+          </select>
+        </div>
+      </div>
+      <div class="fields-row">
+        <div class="field">
+          <label>Preço</label>
+          <select id="f-preco">
+            <option>$</option>
+            <option selected>$$</option>
+            <option>$$$</option>
+            <option>$$$$</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tag especial (opcional)</label>
+          <input id="f-especial" type="text" placeholder="ex: aniversário, sonho…">
+        </div>
+      </div>
+      <div class="field">
+        <label>Descrição</label>
+        <textarea id="f-desc" rows="3" placeholder="Conta um pouco sobre o lugar…"></textarea>
+      </div>
+      <div class="field">
+        <label>URL da imagem (opcional)</label>
+        <input id="f-img" type="text" placeholder="https://…">
+      </div>
+      <div class="field">
+        <label>Link do Google Maps (opcional)</label>
+        <input id="f-maps" type="text" placeholder="https://maps.google.com/…">
+      </div>
+      <button class="btn-salvar" onclick="salvar()">Adicionar à lista</button>
+      <button class="btn-cancelar" onclick="closeAdd()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DADOS BASE (das fotos) ──
+const BASE = [
+  // COMIDA
+  {nome:"Pé de Manga",bairro:"Vila Madalena",tipo:"BAR",preco:"$$",descricao:"Bar charmoso com drinks autorais, petiscos criativos e uma vibe descontraída. Perfeito pra uma noite casual com boa música e boa companhia.",maps:"https://maps.google.com/?q=Pé+de+Manga+Vila+Madalena",img:"https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=900&q=80"},
+  {nome:"Mata Citti",bairro:"Pinheiros",tipo:"RESTAURANTE",preco:"$$$",descricao:"Restaurante com cardápio autoral que mistura ingredientes brasileiros com técnicas contemporâneas. Ambiente íntimo e iluminação perfeita.",maps:"https://maps.google.com/?q=Mata+Citti+Pinheiros",img:"https://images.unsplash.com/photo-1559339352-11d035aa65de?w=900&q=80"},
+  {nome:"Paris 6",bairro:"Jardins",tipo:"RESTAURANTE",preco:"$$$",descricao:"Bistrô francês aberto 24h com clássicos como croque monsieur, fondue e fondant de chocolate. Ideal pra aniversários e ocasiões especiais.",maps:"https://maps.google.com/?q=Paris+6+Jardins",img:"https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=900&q=80",especial:"aniversário"},
+  {nome:"Athenas Restaurante",bairro:"Liberdade",tipo:"RESTAURANTE",preco:"$$",descricao:"Restaurante grego autêntico com pratos tradicionais como gyros, souvlaki e baklava. Uma viagem à Grécia sem sair de SP.",maps:"https://maps.google.com/?q=Athenas+Restaurante+SP",img:"https://images.unsplash.com/photo-1544025162-d76694265947?w=900&q=80"},
+  {nome:"Coco Bambu",bairro:"Moema",tipo:"RESTAURANTE",preco:"$$$",descricao:"Clássico da culinária nordestina com frutos do mar frescos, lagosta e moquecas. Porções generosas e ambiente animado.",maps:"https://maps.google.com/?q=Coco+Bambu+Moema",img:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=900&q=80"},
+  {nome:"Brim",bairro:"Vila Madalena",tipo:"CAFÉ",preco:"$$",descricao:"Café moderno com grãos especiais, menu de brunch caprichado e ambiente aconchegante. Um dos favoritos da Vila Madalena pra começar bem o dia.",maps:"https://maps.google.com/?q=Brim+Café+Vila+Madalena",img:"https://images.unsplash.com/photo-1445116572660-236099ec97a0?w=900&q=80"},
+  {nome:"Vila Hermosa Bistro",bairro:"Vila Mariana",tipo:"RESTAURANTE",preco:"$$",descricao:"Bistrô aconchegante com cardápio variado, vinhos bem selecionados e ambiente charmoso. Ótimo custo-benefício pra um jantar especial.",maps:"https://maps.google.com/?q=Vila+Hermosa+Bistro",img:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=900&q=80"},
+  {nome:"Quintal do Bardo",bairro:"Perdizes",tipo:"BAR",preco:"$$",descricao:"Bar ao ar livre com shows ao vivo, chope gelado e petiscos clássicos. Clima de fim de tarde perfeito.",maps:"https://maps.google.com/?q=Quintal+do+Bardo+Perdizes",img:"https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=900&q=80"},
+  {nome:"Round 2",bairro:"Pinheiros",tipo:"BAR",preco:"$$",descricao:"Bar temático de games com fliperama, drinks nerds e muita nostalgia. Pra quem quer beber e ainda ganhar no Street Fighter.",maps:"https://maps.google.com/?q=Round+2+Bar+Pinheiros",img:"https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=900&q=80"},
+  {nome:"Restaurantes Japoneses",bairro:"Liberdade",tipo:"ASIÁTICO",preco:"$$",descricao:"Explorar os restaurantes japoneses da Liberdade — de ramen a izakaya, um passeio gastronômico pelo bairro japonês mais famoso do Brasil.",maps:"https://maps.google.com/?q=restaurantes+japoneses+Liberdade+São+Paulo",img:"https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=900&q=80"},
+  {nome:"Restaurante Italiano",bairro:"Bixiga",tipo:"RESTAURANTE",preco:"$$",descricao:"O Bixiga é o bairro italiano de SP — massas artesanais, cantucci, chianti e aquele ambiente de trattoria que parece que você está em Roma.",maps:"https://maps.google.com/?q=restaurante+italiano+Bixiga+São+Paulo",img:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=900&q=80"},
+  {nome:"Sorvete de Pudim",bairro:"Pinheiros",tipo:"CAFÉ",preco:"$",descricao:"Sorveteria artesanal especializada no icônico sorvete de pudim com calda de caramelo. Simples, indulgente e perfeito pra qualquer hora.",maps:"https://maps.google.com/?q=Sorvete+de+Pudim+Pinheiros",img:"https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=900&q=80"},
+  {nome:"Tata Sushi",bairro:"Moema",tipo:"ASIÁTICO",preco:"$$",descricao:"Sushi de qualidade com ambiente descontraído. Combinados criativos, temakis generosos e atendimento que faz você voltar toda semana.",maps:"https://maps.google.com/?q=Tata+Sushi+Moema",img:"https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=900&q=80"},
+  {nome:"Yum Sushi",bairro:"Liberdade",tipo:"ASIÁTICO",preco:"$$",descricao:"Rodízio japonês tradicional no coração da Liberdade. Pratos caprichados, temakis frescos e ambiente autêntico.",maps:"https://maps.google.com/?q=Yum+Sushi+Liberdade",img:"https://images.unsplash.com/photo-1617196034099-5b4b27adf77c?w=900&q=80"},
+  {nome:"Terraço Jardins",bairro:"Jardins",tipo:"ROOFTOP",preco:"$$$",descricao:"Rooftop sofisticado com vista privilegiada dos Jardins, drinks elaborados e cardápio executivo. O lugar certo pra impressionar.",maps:"https://maps.google.com/?q=Terraço+Jardins+SP",img:"https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&q=80"},
+  {nome:"Lucido Bar",bairro:"Vila Madalena",tipo:"BAR",preco:"$$",descricao:"Bar minimalista com cocktails bem elaborados e playlist impecável. Queridinho da Vila Madalena pra uma noite mais intimista.",maps:"https://maps.google.com/?q=Lucido+Bar+Vila+Madalena",img:"https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=900&q=80"},
+  {nome:"Café Girondino",bairro:"Centro Histórico",tipo:"CAFÉ",preco:"$",descricao:"Café histórico fundado em 1887 no coração do Centro. Ambiente vintage, café coado na hora e salgados que viraram lenda. Patrimônio de SP.",maps:"https://maps.google.com/?q=Café+Girondino+Centro+SP",img:"https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=900&q=80"},
+  // EXPERIÊNCIAS
+  {nome:"Fazer um Desenho",bairro:"Em casa",tipo:"EXPERIÊNCIA",preco:"$",descricao:"Sentar juntos, papel, lápis e criar. Pode ser o retrato um do outro, um lugar que querem ir ou só garatujas sem compromisso.",maps:"https://maps.google.com/?q=São+Paulo",img:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=900&q=80"},
+  {nome:"Templo Zu Lai",bairro:"Ribeirão Pires",tipo:"CULTURA",preco:"$",descricao:"Templo budista gigante a 40km de SP, com estátua de Buda de 12m, jardins impecáveis e uma paz que você não esperava sentir tão perto de casa.",maps:"https://maps.google.com/?q=Templo+Zu+Lai+Ribeirão+Pires",img:"https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=900&q=80"},
+  {nome:"Fazer um Chaveiro",bairro:"Ateliê",tipo:"EXPERIÊNCIA",preco:"$",descricao:"Artesanato com as mãos — argila, couro ou resina. Um chaveiro feito junto que fica de lembrança pra sempre.",maps:"https://maps.google.com/?q=ateliê+artesanato+São+Paulo",img:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&q=80"},
+  {nome:"Montar um Lego",bairro:"Em casa",tipo:"EXPERIÊNCIA",preco:"$$",descricao:"Escolher um set legal e montar juntos. Pode ser arquitetura, um filme favorito ou um set especial. A jornada é a parte mais boa.",maps:"https://maps.google.com/?q=lego+store+São+Paulo",img:"https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=900&q=80"},
+  {nome:"Dia no Parque (de novo)",bairro:"Ibirapuera",tipo:"EXPERIÊNCIA",preco:"$",descricao:"Levar lanche, uma toalha, talvez uma bola. Só passar o dia todo no parque sem pressa. Simples e perfeito.",maps:"https://maps.google.com/?q=Parque+Ibirapuera+São+Paulo",img:"https://images.unsplash.com/photo-1565130838609-c3a86655db61?w=900&q=80"},
+  {nome:"Cozinhar Juntos",bairro:"Em casa",tipo:"EXPERIÊNCIA",preco:"$",descricao:"Escolher uma receita diferente, comprar os ingredientes e cozinhar juntos. Qualquer coisa — massa, bolo, um prato novo. O processo vale mais que o resultado.",maps:"https://maps.google.com/?q=São+Paulo",img:"https://images.unsplash.com/photo-1507048331197-7d4ac70811cf?w=900&q=80"},
+  {nome:"Fliperama",bairro:"São Paulo",tipo:"EXPERIÊNCIA",preco:"$",descricao:"Ir em um fliperama de verdade com máquinas vintage, air hockey e aquela vibe retrô. Competir no Street Fighter e ficar mal com isso.",maps:"https://maps.google.com/?q=fliperama+São+Paulo",img:"https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=900&q=80"},
+  {nome:"Fazer Academia Né",bairro:"Qualquer lugar",tipo:"EXPERIÊNCIA",preco:"$$",descricao:"Sabe aquele plano de ir na academia juntos? Esse. Pode ser uma aula diferente — muay thai, dança, natação. Qualquer coisa que tire da zona de conforto.",maps:"https://maps.google.com/?q=academia+São+Paulo",img:"https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=900&q=80"},
+  {nome:"Aquário de São Paulo",bairro:"Santo André",tipo:"CULTURA",preco:"$$",descricao:"O maior aquário da América Latina com mais de 3.000 animais. Tubarões, arraias, lontras e um túnel subaquático que parece outro mundo.",maps:"https://maps.google.com/?q=Aquário+de+São+Paulo",img:"https://images.unsplash.com/photo-1559827291-72ee739d0d9a?w=900&q=80"},
+  {nome:"Fazer a Unha um do Outro",bairro:"Em casa",tipo:"EXPERIÊNCIA",preco:"$",descricao:"Escolher uma cor, caprichar no esmalte e fazer a unha um do outro. Simples, íntimo e provavelmente vai dar errado de um jeito fofo.",maps:"https://maps.google.com/?q=São+Paulo",img:"https://images.unsplash.com/photo-1604654894610-df63bc536371?w=900&q=80"},
+  {nome:"Fazer Crochê",bairro:"Em casa",tipo:"EXPERIÊNCIA",preco:"$",descricao:"Aprender crochê juntos do zero. Tutoriais no YouTube, lã colorida e muita paciência. Quem termina primeiro ganha o quê?",maps:"https://maps.google.com/?q=loja+de+lã+São+Paulo",img:"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=900&q=80"},
+  {nome:"Cabine Fotográfica",bairro:"Vila Madalena",tipo:"EXPERIÊNCIA",preco:"$",descricao:"Cabines fotográficas analógicas espalhadas pela cidade — aquele registro vintage que fica pra sempre. Procure as da Vila Madalena e do Bom Retiro.",maps:"https://maps.google.com/?q=cabine+fotográfica+Vila+Madalena",img:"https://images.unsplash.com/photo-1570698473787-5063dc86c1d8?w=900&q=80"},
+  {nome:"Loja de Roupas Juntos",bairro:"São Paulo",tipo:"EXPERIÊNCIA",preco:"$$",descricao:"Ir numa loja de roupas, escolher peças um pro outro e ser honest(a) sobre o que ficou bom ou não. Vibe de stylist particular.",maps:"https://maps.google.com/?q=brechó+Vila+Madalena+São+Paulo",img:"https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=900&q=80"},
+  {nome:"Explorar os SESCs",bairro:"Vários",tipo:"CULTURA",preco:"$",descricao:"SP tem vários SESCs incríveis — Pompeia, Pinheiros, Belenzinho, Vila Mariana. Cada um tem uma personalidade. Explorar todos é o desafio.",maps:"https://maps.google.com/?q=SESC+São+Paulo",img:"https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=900&q=80"},
+  {nome:"Feira de Embu das Artes",bairro:"Embu das Artes",tipo:"MERCADO",preco:"$",descricao:"Uma das maiores feiras de artesanato do Brasil, todo fim de semana. Arte, culinária regional, antiguidades e charme a 27km de SP.",maps:"https://maps.google.com/?q=Feira+Embu+das+Artes",img:"https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=900&q=80"},
+  {nome:"Festival de Lanternas",bairro:"São Paulo",tipo:"EXPERIÊNCIA",preco:"$$",descricao:"Instalações luminosas gigantes — lanternas, esculturas de luz e aquela magia de caminhar no escuro iluminado de cores.",maps:"https://maps.google.com/?q=Festival+Lanternas+São+Paulo",img:"https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=900&q=80"},
+  {nome:"Programar Algo Juntos",bairro:"Em casa",tipo:"EXPERIÊNCIA",preco:"$",descricao:"Escolher um projeto pequeno — um site, um app, um jogo — e programar juntos. Nem precisa ficar pronto. O processo é o ponto.",maps:"https://maps.google.com/?q=São+Paulo",img:"https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=900&q=80"},
+  // VIAGEM
+  {nome:"Ilha Bela",bairro:"Litoral Norte SP",tipo:"VIAGEM",preco:"$$",descricao:"A ilha mais bonita do litoral paulista — praias de água transparente, cachoeiras na mata, trilhas e vibe de ilha de verdade. Bate-volta ou fim de semana.",maps:"https://maps.google.com/?q=Ilhabela+São+Paulo",img:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=900&q=80"},
+  {nome:"Carreto Restaurante Trem",bairro:"Paranapiacaba",tipo:"VIAGEM",preco:"$$",descricao:"Trem histórico que sai de SP e passa por paisagens incríveis da Serra do Mar. Um passeio diferente e nostálgico, ideal pra um fim de semana.",maps:"https://maps.google.com/?q=Trem+da+Serra+do+Mar+Paranapiacaba",img:"https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=900&q=80"},
+  {nome:"Pôr do Sol — Sto. Antônio do Pinhal",bairro:"Serra da Mantiqueira",tipo:"VIAGEM",preco:"$",descricao:"Cidadezinha serrana a 200km de SP com o pôr do sol mais bonito da Mantiqueira. Clima fresco e aquela sensação de fim de mundo — boa.",maps:"https://maps.google.com/?q=Santo+Antônio+do+Pinhal",img:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=900&q=80"},
+  {nome:"Curitiba",bairro:"Paraná",tipo:"VIAGEM",preco:"$$",descricao:"A capital mais fria e organizada do Brasil. Jardim Botânico, Ópera de Arame, Museu Oscar Niemeyer e uma cena gastronômica surpreendente. 4h de carro.",maps:"https://maps.google.com/?q=Curitiba+Paraná",img:"https://images.unsplash.com/photo-1548681528-6a5c45b66b42?w=900&q=80"},
+  {nome:"Passar a Noite em uma Praia",bairro:"Litoral SP",tipo:"VIAGEM",preco:"$$",descricao:"Acordar na praia, ouvir o mar de manhã e ver o sol nascer. Qualquer praia — Maresias, Ubatuba, Boiçucanga. O que importa é a experiência.",maps:"https://maps.google.com/?q=Maresias+São+Paulo",img:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=900&q=80"},
+  {nome:"Holambra",bairro:"Interior SP",tipo:"VIAGEM",preco:"$",descricao:"A cidade das flores holandesas no interior de SP. Campos de tulipas, moinhos de vento, arquitetura europeia e o Festival Expoflora.",maps:"https://maps.google.com/?q=Holambra+São+Paulo",img:"https://images.unsplash.com/photo-1490750967868-88df5691cc8b?w=900&q=80"},
+  {nome:"JAPÃO 🗾",bairro:"Ásia",tipo:"VIAGEM",preco:"$$$$",descricao:"O sonho grande. Tóquio, Kyoto, Osaka. Templos shinto, ramen de verdade, cerejeiras na primavera e aquele silêncio que só o Japão tem.",maps:"https://maps.google.com/?q=Japão",img:"https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=900&q=80",especial:"sonho"},
+];
+
+const TIPOS_LIST = ["TODOS","RESTAURANTE","BAR","ASIÁTICO","CAFÉ","ROOFTOP","CULTURA","MERCADO","EXPERIÊNCIA","VIAGEM","OUTRO"];
+
+// ── STATE ──
+let state = loadState();
+function loadState(){
+  try {
+    const s = JSON.parse(localStorage.getItem("fr2_state")||"null");
+    if(s && s.db) return s;
+  } catch(e){}
+  // primeira vez: usa base
+  return { db: BASE.map((l,i)=>({...l,id:i+1})), feitos:{}, nextId: BASE.length+1 };
+}
+function saveState(){ localStorage.setItem("fr2_state", JSON.stringify(state)); }
+
+let filtro="TODOS", busca="", mid=null;
+
+// ── FILTERS ──
+function buildFilters(){
+  const w = document.getElementById("filters");
+  w.innerHTML = TIPOS_LIST.filter(t=>t==="TODOS"||state.db.some(l=>l.tipo===t)).map(t=>{
+    const c = t==="TODOS" ? state.db.length : state.db.filter(l=>l.tipo===t).length;
+    return `<button class="filter-btn${filtro===t?' active':''}" onclick="setF('${t}')">${t}<span class="cbadge">(${c})</span></button>`;
+  }).join('');
+}
+function setF(t){ filtro=t; buildFilters(); render(); }
+
+// ── RENDER ──
+function getItems(){
+  const q=busca.toLowerCase();
+  return state.db.filter(l=>{
+    const ok = filtro==="TODOS"||l.tipo===filtro;
+    const bq = !q||l.nome.toLowerCase().includes(q)||l.bairro.toLowerCase().includes(q)||l.tipo.toLowerCase().includes(q);
+    return ok&&bq;
+  });
+}
+
+function render(){
+  busca = document.getElementById("search").value;
+  const items = getItems();
+  const total = state.db.length;
+  const feitos = state.db.filter(l=>state.feitos[l.id]).length;
+  document.getElementById("meta-count").innerHTML = `<strong>${total} lugares</strong> · SP &amp; arredores · <span style="color:var(--accent);font-weight:500">${feitos} feitos</span>`;
+  document.getElementById("prog").style.width = total ? Math.round(feitos/total*100)+"%" : "0%";
+
+  const lista = document.getElementById("lista");
+  if(!items.length){
+    lista.innerHTML=`<div class="empty">nenhum resultado${busca?` para "<em>${busca}</em>"`:''}.</div>`;
+    return;
+  }
+  lista.innerHTML = items.map((l,i)=>{
+    const f = !!state.feitos[l.id];
+    const pc = ({"$":"","$$":"","$$$":"font-weight:600","$$$$":"color:var(--accent);font-weight:700"})[l.preco]||"";
+    return `<div class="row${f?' feito':''}">
+      <div class="row-num" onclick="openModal(${l.id})">${String(i+1).padStart(2,'0')}</div>
+      <div class="row-nome" onclick="openModal(${l.id})">${l.nome}${l.especial?`<span class="etag">${l.especial}</span>`:''}${f?'<span class="etag etag-done">✓ feito</span>':''}</div>
+      <div class="row-bairro" onclick="openModal(${l.id})">${l.bairro}</div>
+      <div class="row-tipo" onclick="openModal(${l.id})"><span class="tipo-tag">${l.tipo}</span></div>
+      <div class="row-preco" style="${pc}" onclick="openModal(${l.id})">${l.preco}</div>
+      <div class="row-del"><button class="btn-del" onclick="delLugar(${l.id})" title="Excluir">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M9 6V4h6v2"/></svg>
+      </button></div>
+    </div>`;
+  }).join('');
+}
+
+// ── MODAL DETALHES ──
+function openModal(id){
+  const l=state.db.find(x=>x.id===id); if(!l) return;
+  mid=id;
+  document.getElementById("m-photo").src = l.img||"https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=900&q=80";
+  document.getElementById("m-tipo").textContent = l.tipo;
+  document.getElementById("m-nome").textContent = l.nome;
+  document.getElementById("m-bairro").textContent = l.bairro;
+  document.getElementById("m-desc").textContent = l.descricao||"";
+  document.getElementById("m-maps").href = l.maps||"https://maps.google.com/?q="+encodeURIComponent(l.nome);
+  updBtn();
+  document.getElementById("overlay").classList.add("open");
+  document.body.style.overflow="hidden";
+}
+
+function updBtn(){
+  const f=!!state.feitos[mid];
+  document.getElementById("btn-feito").classList.toggle("marked",f);
+  document.getElementById("btn-feito-txt").textContent = f?"✓ Marcado como feito!":"Marcar como feito";
+}
+
+function toggleFeito(){ state.feitos[mid]=!state.feitos[mid]; saveState(); updBtn(); render(); }
+
+function closeModal(){
+  document.getElementById("overlay").classList.remove("open");
+  document.body.style.overflow=""; mid=null;
+}
+function closeOvr(e){ if(e.target===document.getElementById("overlay")) closeModal(); }
+
+function delFromModal(){
+  const id=mid; closeModal();
+  setTimeout(()=>delLugar(id),200);
+}
+
+// ── DELETE ──
+function delLugar(id){
+  const l=state.db.find(x=>x.id===id); if(!l) return;
+  if(!confirm(`Excluir "${l.nome}" da lista?`)) return;
+  state.db = state.db.filter(x=>x.id!==id);
+  delete state.feitos[id];
+  saveState(); buildFilters(); render();
+  toast(`"${l.nome}" removido.`);
+}
+
+// ── MODAL ADICIONAR ──
+function openAdd(){
+  document.getElementById("f-nome").value="";
+  document.getElementById("f-bairro").value="";
+  document.getElementById("f-tipo").value="";
+  document.getElementById("f-preco").value="$$";
+  document.getElementById("f-especial").value="";
+  document.getElementById("f-desc").value="";
+  document.getElementById("f-img").value="";
+  document.getElementById("f-maps").value="";
+  document.getElementById("overlay-add").classList.add("open");
+  document.body.style.overflow="hidden";
+  document.getElementById("f-nome").focus();
+}
+function closeAdd(){
+  document.getElementById("overlay-add").classList.remove("open");
+  document.body.style.overflow="";
+}
+function closeAddOvr(e){ if(e.target===document.getElementById("overlay-add")) closeAdd(); }
+
+function salvar(){
+  const nome = document.getElementById("f-nome").value.trim();
+  const tipo = document.getElementById("f-tipo").value;
+  if(!nome){ alert("Coloca o nome do lugar!"); return; }
+  if(!tipo){ alert("Seleciona o tipo!"); return; }
+
+  const novo = {
+    id: state.nextId++,
+    nome,
+    bairro: document.getElementById("f-bairro").value.trim()||"São Paulo",
+    tipo,
+    preco: document.getElementById("f-preco").value,
+    especial: document.getElementById("f-especial").value.trim()||null,
+    descricao: document.getElementById("f-desc").value.trim(),
+    img: document.getElementById("f-img").value.trim()||"https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=900&q=80",
+    maps: document.getElementById("f-maps").value.trim()||"https://maps.google.com/?q="+encodeURIComponent(nome+"+São+Paulo"),
+  };
+  state.db.push(novo);
+  saveState();
+  closeAdd();
+  filtro="TODOS";
+  buildFilters();
+  render();
+  toast(`"${nome}" adicionado à lista!`);
+}
+
+// ── TOAST ──
+let toastTimer;
+function toast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove("show"),2800);
+}
+
+// ── INIT ──
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ closeModal(); closeAdd(); }});
+buildFilters(); render();
+</script>
+</body>
+</html>
